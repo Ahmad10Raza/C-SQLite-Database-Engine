@@ -1,3 +1,7 @@
+# file
+*.ipynb_checkpoints
+*.ipynb
+
 # Prerequisites
 *.d
 
