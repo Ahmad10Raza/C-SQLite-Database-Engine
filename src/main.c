@@ -330,7 +330,9 @@ int main(int argc, char* argv[]) {
         
         read_input(input_buffer); // Read the input
 
-        if (input_buffer->buffer, ".exit") { // If the input is meta command
+        if (strcmp(input_buffer->buffer, ".exit") == 0) { // If the input is meta command
+            close_input_buffer(input_buffer); // Close the input buffer
+            free_table(table); // Free the table
             exit(EXIT_SUCCESS); // Exit the program
         } else{
             printf("Unrecognized command '%s'.\n", input_buffer->buffer); // Print the unrecognized command
