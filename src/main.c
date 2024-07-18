@@ -217,6 +217,23 @@ void print_prompt() {
 
 
 // Function to prepare the statement
+// PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement) {
+//     if (strncmp(input_buffer->buffer, "insert", 6) == 0) { // If the input is insert
+//         statement->type = STATEMENT_INSERT; // Assigning the statement type
+//         int args_assigned = sscanf(input_buffer->buffer, "insert %d %s %s", &(statement->row_to_insert.id), statement->row_to_insert.username, statement->row_to_insert.email); // Assigning the values to the statement
+//         if(args_assigned < 3) { // If the arguments assigned is less than 3
+//             return PREPARE_SYNTAX_ERROR; // Return the syntax error
+//         }
+//         return PREPARE_SUCCESS; // Return the success
+//     }
+//     if (strcmp(input_buffer->buffer, "select") == 0) { // If the input is select
+//         statement->type = STATEMENT_SELECT; // Assigning the statement type
+//         return PREPARE_SUCCESS; // Return the success
+//     }
+//     return PREPARE_UNRECOGNIZED_STATEMENT; // Return the unrecognized statement
+// }
+
+// Function to prepare the statement
 PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement) {
     if (strncmp(input_buffer->buffer, "insert", 6) == 0) { // If the input is insert
         statement->type = STATEMENT_INSERT; // Assigning the statement type
@@ -232,6 +249,9 @@ PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
     }
     return PREPARE_UNRECOGNIZED_STATEMENT; // Return the unrecognized statement
 }
+
+
+
 
 
 // Function to execute the statement
@@ -322,6 +342,11 @@ void close_input_buffer(InputBuffer* input_buffer) {
 
 
 // Main function
+
+                
+                
+
+          // Main function
 int main(int argc, char* argv[]) {
     Table* table = new_table(); // Creating the table
     InputBuffer* input_buffer = new_input_buffer(); // Creating the input buffer
@@ -330,43 +355,41 @@ int main(int argc, char* argv[]) {
         
         read_input(input_buffer); // Read the input
 
-        if (strcmp(input_buffer->buffer, ".exit") == 0) { // If the input is meta command
+        if (strcmp(input_buffer->buffer, ".exit") == 0) { // If the input is the .exit meta command
             close_input_buffer(input_buffer); // Close the input buffer
             free_table(table); // Free the table
             exit(EXIT_SUCCESS); // Exit the program
-        } else{
-            printf("Unrecognized command '%s'.\n", input_buffer->buffer); // Print the unrecognized command
-            if(input_buffer->buffer[0] == '.'){
-                switch(do_meta_command(input_buffer, table)){
-                    case (META_COMMAND_SUCCESS):
-                        continue;
-                    case (META_COMMAND_UNRECOGNIZED_COMMAND):
-                        printf("Unrecognized command '%s'.\n", input_buffer->buffer);
-                        continue;
-                }
+        } else if(input_buffer->buffer[0] == '.'){ // If the input is any other meta command
+            switch(do_meta_command(input_buffer, table)){
+                case META_COMMAND_SUCCESS:
+                    continue;
+                case META_COMMAND_UNRECOGNIZED_COMMAND:
+                    printf("Unrecognized command '%s'.\n", input_buffer->buffer);
+                    continue;
             }
-        }
-
-            Statement statement; // Statement
-            switch(prepare_statement(input_buffer, &statement)) { // Prepare the statement
-                case (PREPARE_SUCCESS): // If the statement is success
-                    break; // Break the loop
-                case (PREPARE_SYNTAX_ERROR): // If the statement is syntax error
-                    printf("Syntax error. Could not parse statement.\n"); // Print the syntax error
-                    continue; // Continue the loop
-                case (PREPARE_UNRECOGNIZED_STATEMENT): // If the statement is unrecognized
-                    printf("Unrecognized keyword at start of '%s'.\n", input_buffer->buffer); // Print the unrecognized keyword
-                    continue; // Continue the loop
+        } else {
+            // Process SQL commands here
+            // This part involves preparing the statement and then executing it
+            // For simplicity, let's assume we have prepare_statement and execute_statement functions
+            Statement statement;
+            switch(prepare_statement(input_buffer, &statement)){
+                case PREPARE_SUCCESS:
+                    switch(execute_statement(&statement, table)){
+                        case EXECUTE_SUCCESS:
+                            printf("Executed.\n");
+                            break;
+                        case EXECUTE_TABLE_FULL:
+                            printf("Error: Table full.\n");
+                            break;
+                    }
+                    break;
+                case PREPARE_SYNTAX_ERROR:
+                    printf("Syntax error. Could not parse statement.\n");
+                    break;
+                case PREPARE_UNRECOGNIZED_STATEMENT:
+                    printf("Unrecognized keyword at start of '%s'.\n", input_buffer->buffer);
+                    break;
             }
-
-            switch(execute_statement(&statement, table)) { // Execute the statement
-                case (EXECUTE_SUCCESS): // If the statement is success
-                    printf("Executed.\n"); // Print executed
-                    break; // Break the loop
-                case (EXECUTE_TABLE_FULL): // If the table is full
-                    printf("Error: Table full.\n"); // Print table full
-                    break; // Break the loop
-            }
-        
         }
     }
+}
